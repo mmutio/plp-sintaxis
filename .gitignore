@@ -1,0 +1,6 @@
+bin/
+interpreter/src/org/unp/plp/interprete/Parser.java
+interpreter/src/org/unp/plp/interprete/Lexer.java
+*.pdf
+*.tex
+material/
