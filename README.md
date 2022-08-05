@@ -52,7 +52,7 @@ La programación del Mundo Wumpus puede pensarse en dos etapas, la de definició
 
 Mundo Wumpus se juega sobre un entorno representado por una grilla donde cada casilla representa una cámara de la caverna.
 
-![Grilla Wumpus World]()
+![Grilla Wumpus World](wumpus-world.png)
 
 Lo primero que se debe realizar en la etapa de definición es determinar el tamaño del mundo, con la sentencia:
 
@@ -72,6 +72,7 @@ respectivamente, para ser utilizadas como sigue:
 * `put gold in [5,5];` Pone oro en la casilla 5,5
 * `rem pit in [3,4];` Remueve el pozo de la casilla 3,4
 * `put wumpus in [6,1];` Pone al wumpus en la casilla 6,1
+* `put hero in [4,2];` Pone al heroe en la casilla 4,2
 
 Se debe tener en cuenta que sólo está permitido un montı́culo de oro y un Wumpus en el mundo, por lo que la acción de poner debe sobreescribir la posición anterior si se intenta poner más de uno.
 
@@ -96,61 +97,21 @@ Cuando se utilizan expresiones, después de `:` todas las expresiones separadas 
 
 Estas son las sentencias necesarias para definir el ambiente, pero se debe tener en cuenta que no puede haber conflictos en las casillas, o sea, no puede haber dos elementos diferentes en la misma casilla, por lo que se deja a discreción de la implementación como responde el interprete a instrucciones conflictivas.
 
-Finalmente, con fines de debugging, es necesario implementar una sentencia que permita ver como está formado el mundo.
+Finalmente, es necesario implementar una sentencia que permita ver como está formado el mundo.
 
     print world;
 
-Esta sentencia debe devolver a la salida estándar la información completa del mundo en el siguiente formato:
+Esta sentencia debe devolver a la salida estándar la información completa del mundo en formato csv de la siguiente forma:
 
-    world 5x5
-    wumpus [3,2]
-    gold [5,4]
-    pits [2,3][5,1][4,2]
+    world,5,5
+    wumpus,3,2
+    gold,5,4
+    hero,3,2
+    pit,2,3
+    pit,5,1
+    pit,4,2
+    ...
 
-Donde `world` indica el tamaño del mundo, `wumpus` la posición del Wumpus, `gold` la posición del oro y `pits` una lista con las posiciones de los pozos. Como agregado adicional esta información es suficiente para reconstruir el mundo.
+Donde `world` indica el tamaño del mundo, `wumpus` la posición del Wumpus, `gold` la posición del oro, `hero` la posición del heroe y `pit` la de cada pozo. El orden en que aparecen no es importante.
 
-
-## Etapa de juego
-
-Luego de haber definido todo el mundo es posible utilizar el interprete para jugar el juego. La siguiente sentencia es necesaria para indicar que el juego comienza:
-
-    start
-
-Además de establecer que no se podrá modificar más el contenido del mundo, inicializa todas las variables de contexto en el siguiente estado inicial:
-
-    hero [1,1] right
-    arrow yes
-    wumpus alive
-    actions 0
-    status playing
-
-Cada vez que se ejecute `start`, sin importar el estado del juego, el contexto debe ser vuelto al estado inicial. Se debe implementar también la sentencia de debug `print status` que muestre la información anterior en ese formato.
-
-El héroe cuenta con la siguiente lista de acciones:
-
-| Acción | Efecto|
-|-|-|
-| turn left | El héroe gira en sentido anti-horario.
-| turn right | El héroe gira en sentido horario.
-| walk | El héroe avanza hacia la dirección que está orientado.
-| percept | Indica si hay una brisa, un crujido y/o un destello.
-| shoot | Dispara la flecha en la dirección que mira el héroe.
-
-
-Las acciones modifican el estado del juego y generan una salida según el nuevo estado.
-
-La salida de turn `left/right` indican la nueva dirección del héroe, con lo valores posibles `right`, `left`, `up`, `down`.
-
-La acción `walk` puede derivar en varias posibilidades, la misma salida de `percept` si la casilla está vacı́a, `eaten` si el Wumpus estaba en la casilla destino, fallen si habı́a un pozo en la casilla destino, `rich` si en la casilla estaba el oro o `bump` si en la dirección que quiso ir no habı́a casilla sino una pared.
-
-La salida de `percept` puede dar varios datos separados por coma: `strench` si el Wumpus está en una de las casillas adyacentes, `breeze` si hay un pozo en la casilla adyacente o `glitter` si el oro está en la dirección que el héroe está mirando.
-
-Por último, la acción `shoot` retorna `click` si la flecha falla o `scream` si la flecha le da al Wumpus.
-
-Finalmente si el héroe muere no serı́a posible seguir jugando, pero se podrı́a retroceder mediante la siguiente sentencia:
-    
-    status - 3
-
-Esto permite retroceder el estado tres pasos para volver a intentar. Se puede indicar cualquier número de pasos que retroceder.
-
-Para ganar el juego el héroe debe tomar el oro y volver a la casilla inicial. Los estados posibles del juego son playing, win o lose.
+![El Wumpus](wumpus.png)
