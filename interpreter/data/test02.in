@@ -1,0 +1,3 @@
+world 4x5;
+put pit in [1,?: j < 3];
+print world;

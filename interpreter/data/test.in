@@ -7,4 +7,3 @@ put pit in [3,4];
 put wumpus in [1,3];
 put hero in [3,0];
 print world;
-start;

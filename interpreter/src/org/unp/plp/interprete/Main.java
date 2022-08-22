@@ -36,6 +36,7 @@ class Main {
 
 		// Ejecuta el analizador léxico/sintáctico
 		Parser analizador = new Parser(lector);
+		//analizador.yydebug = true;
 		analizador.yyparse();
 	}
 
