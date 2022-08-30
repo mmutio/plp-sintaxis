@@ -5,6 +5,8 @@
   import java.io.*;
   import java.util.List;
   import java.util.ArrayList;
+  import java.util.Collection;
+  import java.util.Set;
 %}
 
 
@@ -12,23 +14,105 @@
 
 %token NL         // nueva línea
 %token CONSTANT   // constante
+%token WORLD      // mundo
+%token IN         // in
+%token PIT        // pozo
+%token PUT        // poner
+%token REM
+%token HERO       // heroe
+%token WUMPUS     // wumpus
+%token GOLD       // oro
+%token PRINT      // imprimir
 
 %%
 
 program
-  : statement_list            // Lista de sentencias
-  |                           // Programa vacio
+  : 
+  | world_statement statement_list            // Lista de sentencias
+  ;
+
+world_statement
+  : WORLD CONSTANT 'x' CONSTANT ';' NL {world.create((int)$2, (int)$4);}
   ;
 
 statement_list
-  : statement                // Unica sentencia
-  | statement statement_list // Sentencia,y lista
+  :                // vacio
+  | statement ';' NL statement_list // Sentencia y lista
   ;
 
 statement
-  : CONSTANT NL {System.out.println("constante: "+ $1); $$ = $1;}
+  : action_statement
+  | print_statement
   ;
 
+print_statement
+  : PRINT WORLD {world.print();}
+  ;
+
+action_statement
+  : PUT object IN una_celda {world.putOther((String)$2, (Celda)$4);}
+  | PUT PIT IN una_celda {world.putPit((Celda)$4);}
+  | PUT PIT IN muchas_celdas {world.putPits((Collection<Celda>)$4);}
+  ;
+
+una_celda
+  : '[' CONSTANT ',' CONSTANT ']' { $$ = new Celda((int)$2,(int)$4);}
+  ;
+
+muchas_celdas
+  : '[' CONSTANT ',' '?'      ':' cond_list ']' {$$ = $6;}
+  | '[' '?'      ',' CONSTANT ':' cond_list ']' {$$ = $6;}
+  | '[' '?'      ',' '?'      ':' cond_list ']' {$$ = $6;}
+  ;
+
+cond_list
+  : cond
+  | cond ',' cond_list {$$ = world.condicion((List<Celda>)$1,(List<Celda>)$3,(a,b) -> true);}
+  ;
+
+cond
+  : expr '=''=' expr {$$ = world.condicion(((Matriz)$1).celdas(),((Matriz)$4).celdas(),(a,b) -> Math.abs(a - b) < 0.01);}
+  | expr '>''=' expr {$$ = world.condicion(((Matriz)$1).celdas(),((Matriz)$4).celdas(),(a,b) -> a >= b);}
+  | expr '<''=' expr {$$ = world.condicion(((Matriz)$1).celdas(),((Matriz)$4).celdas(),(a,b) -> a <= b);}
+  | expr '>' expr    {$$ = world.condicion(((Matriz)$1).celdas(),((Matriz)$3).celdas(),(a,b) -> a > b);}
+  | expr '<' expr    {$$ = world.condicion(((Matriz)$1).celdas(),((Matriz)$3).celdas(),(a,b) -> a < b);}
+  ;
+
+/*expr
+  : op
+  | expr '+' expr { $$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a+b); }
+  | expr '-' expr { $$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a-b); }
+  | expr '*' expr { $$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a*b); }
+  | expr '/' expr { $$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a/b); }
+  ;
+*/
+
+expr
+: expr '+' term {$$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a+b);}
+| expr '-' term {$$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a-b);}
+| term
+;
+term
+: term '*' factor {$$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a*b);}
+| term '/' factor {$$ = Matriz.operar((Matriz)$1, (Matriz)$3, (a,b) -> a/b);}
+| factor
+;
+factor
+: expr
+| op
+;
+
+op
+  : CONSTANT {$$ = Matriz.constante((int)$1);}
+  | 'j' {$$ = Matriz.j();}
+  | 'i' {$$ = Matriz.i();}
+  ;
+
+object
+  : WUMPUS
+  | HERO
+  | GOLD
+  ;
 
 %%
 
